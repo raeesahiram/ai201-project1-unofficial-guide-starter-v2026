@@ -22,12 +22,33 @@ names a target of "4 of 5", and four of three is not a thing.
 """
 
 QUESTIONS = [
-    # {"question": "...", "expects": "..."},
-    {"question": "", "expects": ""},
-    {"question": "", "expects": ""},
-    {"question": "", "expects": ""},
-    {"question": "", "expects": ""},
-    {"question": "", "expects": ""},
+    # Corpus: advice_threads. Each question is answered by one thread, named in
+    # the comment, so a wrong retrieval is obvious rather than arguable.
+    # thread_pass_fail.txt — reply 2, corroborated by thread_first_year_regret.txt
+    {
+        "question": "How late in the term can you declare a course pass/fail?",
+        "expects": "week eight",
+    },
+    # thread_printing.txt — reply 1
+    {
+        "question": "How many black-and-white pages does the printing quota cover?",
+        "expects": "600",
+    },
+    # thread_laundry_timing.txt — reply 1
+    {
+        "question": "When do students say the dorm laundry rooms are least busy?",
+        "expects": "Tuesday and Wednesday mornings",
+    },
+    # thread_laptop_specs.txt — replies 1 and 3 agree on the number
+    {
+        "question": "How much RAM do students recommend for a laptop for CS courses?",
+        "expects": "16GB",
+    },
+    # thread_parking.txt — reply 1
+    {
+        "question": "How quickly do the west parking lots sell out?",
+        "expects": "three days",
+    },
 ]
 
 # Questions from a different world entirely. Your gate should refuse all five.

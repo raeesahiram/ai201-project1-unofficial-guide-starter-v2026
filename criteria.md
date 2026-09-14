@@ -19,12 +19,19 @@ pipeline earns credit; *"80% seemed reasonable"* does not.
 
 ## 1. Retrieved chunks contain the answer
 
-For at least 4 of my 5 test questions, the retrieved chunks include one that
-contains the answer.
+For at least 4 of my 5 test questions, one of the retrieved chunks contains that
+question's `expects` string from `questions.py`, matched as a case-insensitive
+substring.
 
 **Why this target:**
-<!-- e.g. "One of my questions is about a topic only two documents mention, so
-     I expect that one to be hard." -->
+
+I picked 4 of 5 because of the laptop question: it's the only one of my five
+whose answer is argued across replies rather than stated once — reply 1 says
+16GB, reply 3 spends most of its length on an 8GB machine that was fine before
+conceding "16 is the answer" — so it's the one where a chunk boundary could
+return the anecdote without the conclusion. I match the `expects` string rather
+than judging "contains the answer" because I couldn't score that wording the
+same way twice on that same question.
 
 ---
 
@@ -33,8 +40,14 @@ contains the answer.
 Every answer the system produces names at least one source document.
 
 **Why this target:**
-<!-- Why all five and not four? What about your setup makes that achievable —
-     or what would have to go wrong for it not to be? -->
+
+I picked every answer rather than 4 of 5 because this one is either working or
+it isn't: `ask_pipeline` builds the source list from the retrieved chunks and
+every chunk carries its filename, so a missing source would mean an answer
+produced from zero chunks, which the gate refuses before it can happen. What it
+doesn't check is whether the source named is the one the answer came from —
+with `TOP_K = 5` over 26 chunks, a fifth of my corpus is listed under every
+answer, and that's what I'd revise this into in week 2.
 
 ---
 
@@ -50,48 +63,46 @@ in at least 4 of 5 tries.
      just keep five of them, or the "4 of 5" above has nothing to be 4 of. -->
 
 **Why this target:**
-<!-- What did your distances look like when you set the cutoff in Milestone 4?
-     Was there a clean gap, or did the two groups overlap? -->
+
+My five test questions measured 0.190 to 0.446 and the five `OUT_OF_SCOPE` ones
+0.787 to 0.930, so the 0.6 cutoff sits in a 0.34-wide gap with nothing in it.
+I kept 4 of 5 rather than raising it to 5 of 5 because those five are
+unrealistically clean — "What is the capital of Mongolia?" shares no vocabulary
+with a corpus about parking permits, and the questions that will really test
+this gate are ones that sound like student questions but aren't in my documents,
+like "how much is a parking ticket".
 
 ---
 
-## 4. Something about your chunks
+## 4. One chunk per thread, no fragments
 
-<!-- YOU WRITE THIS ONE.
-
-     How would you know if your chunks were the right size? Name something
-     countable or observable.
-
-     Examples of the right shape — don't copy these, they should come from
-     what you actually saw in Milestone 3:
-       - "At least 4 of 5 sampled chunks read as a complete thought, with no
-          sentence cut in half at either end."
-       - "No chunk is shorter than 200 characters, since anything below that
-          in my corpus turned out to be a heading with no content under it." -->
-
-
+Every chunk is one whole thread: 23 chunks from 23 documents, each between 300
+and 800 characters.
 
 **Why this target:**
 
-
+I picked 300 and 800 because they're my corpus's actual floor and ceiling — the
+shortest thread is 317 characters and the longest 793 — so anything outside that
+range isn't a whole thread. I picked 23 rather than accepting today's 26 because
+the three extra chunks are duplicate tails the 680-character stride cut off
+documents already indexed whole, and one of them is 2 characters long.
 
 ---
 
-## 5. Your choice
+## 5. The answer states the right fact
 
-<!-- YOU WRITE THIS ONE TOO.
-
-     Pick something you actually care about getting right. It could be about
-     speed, about refusals, about a particular kind of question your corpus
-     handles badly, about source attribution being correct rather than merely
-     present — anything, as long as it names a number or an observable
-     outcome. -->
-
-
+For at least 4 of my 5 test questions, the answer the system returns contains
+that question's `expects` string from `questions.py`, matched as a
+case-insensitive substring.
 
 **Why this target:**
 
-
+Nothing else in these five checks whether the answer is *right* — the system
+could pass 1, 2 and 3 and still tell a student the printing quota is 300 pages
+with a correct source printed underneath. I picked 4 of 5 because the laptop
+question is the one place in my corpus where the right answer means taking a
+side in an argument: the model has to read "I did two years on an 8GB machine
+and it was fine" and still say 16GB.
 
 ---
 
