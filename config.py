@@ -33,7 +33,7 @@ CHUNK_OVERLAP = 0       # nothing is cut mid-sentence, so there is nothing to ov
 
 # ─── Retrieval (Milestone 4) ─────────────────────────────────────────────────
 
-TOP_K = 5               # how many chunks to pull back per question
+TOP_K = 3               # ranks 4 and 5 held the answer for 0 of my 5 questions
 
 # The relevance gate. If the best chunk is further away than this, the system
 # refuses to answer instead of handing the model thin material.

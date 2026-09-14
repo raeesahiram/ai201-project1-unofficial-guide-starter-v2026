@@ -277,7 +277,14 @@ GROUNDING_INSTRUCTION = """You answer questions using only the documents provide
 Rules:
 - Use only the information in the documents below. Do not use anything you know from elsewhere.
 - If the documents don't cover the question, say you don't have enough information. Do not guess.
-- Name the document your answer came from, using the filename given in each excerpt.
+- A document on the same subject is not the same as an answer. If the documents
+  discuss the topic but never state the specific thing asked, say you don't have
+  enough information rather than answering from the general subject matter.
+- Name the document your answer came from, using the filename given in each
+  excerpt. Name only the documents you actually used, not every document shown.
+- These documents are discussion threads and the replies often disagree. Where
+  they do, say so and give the condition that decides it, rather than silently
+  picking one side.
 - Be brief. Two or three sentences is usually enough."""
 
 

@@ -153,10 +153,88 @@ both answer "are office hours worth it?", and a query for that returns them
 widest — four separate facts — and "How do I keep my bike from being stolen?"
 retrieves it at 0.637, above the 0.6 cutoff, even though reply 4 answers it.
 
+## Relevance Cutoff
+
+**THRESHOLD: 0.6** — the number the starter ships, kept on purpose after measuring.
+
+My five test questions and the five in `OUT_OF_SCOPE`, best distance each, at
+`TOP_K = 3`:
+
+| In corpus | | Out of corpus | |
+|---|---|---|---|
+| laptop RAM | 0.190 | ibuprofen dosage | 0.828 |
+| parking lots | 0.293 | Rust for loop | 0.871 |
+| pass/fail | 0.314 | diesel oil change | 0.930 |
+| printing quota | 0.405 | capital of Mongolia | 0.948 |
+| laundry timing | 0.446 | 1994 World Cup | 0.952 |
+
+**0.190–0.446 against 0.828–0.952**: a gap of 0.382 with nothing in it, midpoint
+0.637. Any cutoff between 0.45 and 0.82 scores 5 of 5 both ways, so these ten
+questions don't actually choose the number for me.
+
+So I tested eleven more. Six my documents *do* cover, phrased the way a student
+would rather than in corpus vocabulary, and five that sound like student
+questions but aren't in my documents at all:
+
+| Covered, natural phrasing | | Not covered, plausible | |
+|---|---|---|---|
+| summer internships | 0.301 | parking ticket cost | 0.535 |
+| roommate guests | 0.401 | gym closing time | 0.638 |
+| winter coat | 0.470 | appealing a grade | 0.657 |
+| older textbook edition | 0.604 | student ID pickup | 0.726 |
+| bike theft | 0.637 | airport shuttle | 0.767 |
+| essay extension | 0.788 | | |
+
+**These two groups overlap, 0.535 to 0.788.** There is no cutoff that separates
+real questions from unanswerable ones — only cutoffs that trade one error for
+the other:
+
+| Cutoff | My 5 pass | OUT_OF_SCOPE refused | Covered pass | Uncovered refused |
+|---|---|---|---|---|
+| 0.55 | 5/5 | 5/5 | 3/6 | 4/5 |
+| **0.60** | **5/5** | **5/5** | **3/6** | **4/5** |
+| 0.65 | 5/5 | 5/5 | 5/6 | 3/5 |
+| 0.70 | 5/5 | 5/5 | 5/6 | 2/5 |
+
+I picked 0.6 over 0.65 because of *which* questions each one gets wrong, not how
+many. Of the three covered questions 0.6 refuses, two — the essay extension at
+0.788 and the older textbook at 0.604 — retrieved the wrong thread anyway
+(`first_gen` and `printing`, when the answers live in `late_work` and
+`textbook_editions`). Refusing those is the right outcome, not a loss. Only bike
+theft at 0.637 is a genuine false refusal. Moving to 0.65 would rescue it, but
+would also admit the wrong-thread textbook question and the gym closing time —
+trading one honest refusal for two chances to invent an answer.
+
+The cost I'm accepting: "How much is a parking ticket?" lands at 0.535 and
+passes. My parking thread never mentions tickets, so the model gets a relevant-
+looking document and no answer in it. That's the failure mode I'd watch first in
+week 2.
+
 ## Sample Answer
 
-<!-- One complete question and answer, pasted as text, with the source line
-     visible. Milestone 4. -->
+```
+$ python app.py ask "How much RAM do students recommend for a laptop for CS courses?"
+
+  (best distance 0.190, cutoff 0.6)
+
+Students recommend 16GB of RAM for a laptop for CS courses.
+
+Source: thread_laptop_specs.txt
+
+Sources retrieved: thread_first_gen.txt, thread_laptop_specs.txt, thread_printing.txt
+
+1 model calls this session, 650 tokens (624 in, 26 out)
+```
+
+Two lines are worth separating. `Source:` is the model's own citation, and it
+names the one thread it used. `Sources retrieved:` is `app.py` printing all
+`TOP_K = 3` chunks that came back, including `first_gen` at 0.711 and `printing`
+at 0.717, which contributed nothing. Criterion 2 is satisfied by the second
+line; the first is the one that's actually correct.
+
+The answer is also the test of criterion 5 for this question. `thread_laptop_specs.txt`
+contains a reply saying "I did two years on an 8GB machine and it was fine," and
+the answer still comes back 16GB.
 
 **Question:**
 
