@@ -22,10 +22,15 @@ to it, write down what you saw, and move on. That's a real observation about
 your pipeline, not giving up.
 """
 
+import re
 from dataclasses import dataclass
 
 import config
 from ingest import Document
+
+# The line every reply in advice_threads starts with, e.g.
+#   --- reply 3 (11 votes) ---
+REPLY_HEADER = re.compile(r"^--- reply \d+ \(\d+ votes\) ---$", re.MULTILINE)
 
 
 @dataclass
@@ -80,24 +85,80 @@ def fallback_split(
     return chunks
 
 
+def _split_on_replies(text: str, chunk_size: int) -> list[str] | None:
+    """
+    Cut a long thread between replies, repeating the title on every piece.
+
+    Returns None if this doesn't look like a thread, so the caller can fall
+    back to fixed-size windows rather than hand back one oversized chunk.
+    """
+    starts = [m.start() for m in REPLY_HEADER.finditer(text)]
+    if not starts:
+        return None
+
+    title = text[: starts[0]].strip()
+    replies = [
+        text[a:b].strip() for a, b in zip(starts, starts[1:] + [len(text)])
+    ]
+
+    pieces, current = [], []
+    for reply in replies:
+        if current and len("\n\n".join([title, *current, reply])) > chunk_size:
+            pieces.append("\n\n".join([title, *current]))
+            current = [reply]
+        else:
+            current.append(reply)
+    if current:
+        pieces.append("\n\n".join([title, *current]))
+    return pieces
+
+
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
-    Split documents into chunks. ⚠️ REPLACE THE BODY OF THIS IN MILESTONE 3.
+    One whole thread per chunk.
 
-    Right now it just calls the fallback. That is the plain, generic behaviour
-    the brief is talking about.
+    My corpus is `advice_threads`: 23 threads running 317 to 793 characters,
+    so not one of them reaches the 1,000-character ceiling and every document
+    comes out as a single chunk. That is the point — the starter's fixed-size
+    windows split three of them, and every split was a duplicate tail of a
+    document the first window already held whole, one of them two characters
+    long.
 
-    When you write your own strategy, set `produced_by` to
-    "chunker.py::split_documents" so your README's Sample Chunks section names
-    the right function. `app.py chunks` prints that string for you.
+    `chunk_size` is a ceiling rather than a target here. If a thread ever
+    exceeds it, the split falls on a reply boundary and the `THREAD:` title
+    goes on both halves, because the title is the only place the topic is
+    stated — a chunk reading "16GB of RAM is the one number worth paying for"
+    has lost that the question was about laptops.
 
-    Things worth thinking about before you write any code:
-      - Are your documents short posts or long guides?
-      - Is the useful information in one sentence, or spread over a paragraph?
-      - Would splitting on paragraph breaks keep more thoughts intact than
-        splitting on a character count?
+    A document with no reply headers in it — another corpus, or a thread in a
+    format this doesn't recognise — falls through to `fallback_split` so this
+    never returns a chunk larger than the ceiling without saying so.
     """
-    return fallback_split(documents)
+    chunk_size = config.CHUNK_SIZE
+    chunks: list[Chunk] = []
+
+    for doc in documents:
+        text = doc.text.strip()
+
+        if len(text) <= chunk_size:
+            pieces = [text]
+        else:
+            pieces = _split_on_replies(text, chunk_size)
+            if pieces is None:
+                # Overlap comes from config, which this strategy sets to 0.
+                pieces = [c.text for c in fallback_split([doc], chunk_size)]
+
+        for index, piece in enumerate(pieces):
+            chunks.append(
+                Chunk(
+                    text=piece,
+                    source=doc.source,
+                    index=index,
+                    produced_by="chunker.py::split_documents",
+                )
+            )
+
+    return chunks
 
 
 def describe(chunks: list[Chunk]) -> str:
