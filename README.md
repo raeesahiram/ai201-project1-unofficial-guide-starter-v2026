@@ -1,6 +1,6 @@
 # The Unofficial Guide
 
-<!-- Replace this line with your name and which corpus you picked. -->
+Raeesah Iram — corpus: `advice_threads`
 
 > **This file is your submission.** Fill it in as you go — most sections get
 > written during the milestone that produces them, not at the end.
@@ -22,11 +22,18 @@
 
 ## What This Does
 
-<!-- Three or four sentences. Which corpus you picked, and the kinds of
-     questions your system answers. Write it for someone who has never seen
-     this repo.
+This answers questions about university life from `advice_threads` — 23
+question-and-answer threads where students reply to each other about parking
+permits, laundry timing, pass/fail deadlines, laptop specs and the rest of the
+things nobody writes down officially. You ask a question, it finds the thread
+that answers it, and it returns two or three sentences naming the file it used.
 
-     Milestone 5. -->
+It's built for questions with one right answer — "how late can you declare
+pass/fail?", "how many pages does the printing quota cover?" — not for open
+questions like "what's the best dorm". If nothing in the 23 threads is close
+enough to the question, it says it doesn't have enough information instead of
+guessing, and it does that in two places: a distance cutoff before the model is
+called, and an instruction in the prompt for the cases that get past it.
 
 ## Chunking Strategy
 
@@ -236,10 +243,6 @@ The answer is also the test of criterion 5 for this question. `thread_laptop_spe
 contains a reply saying "I did two years on an 8GB machine and it was fine," and
 the answer still comes back 16GB.
 
-**Question:**
-
-**Answer:**
-
 ```
 ```
 
@@ -260,18 +263,18 @@ the answer still comes back 16GB.
 
 ## How I Used AI
 
-<!-- Two specific moments. For each: what you asked for, what came back, and
-     what you changed about it.
+**1.** I asked Claude to rewrite the chunker after reading what the starter
+actually produced. It found that the 2-character chunk came from the overlap,
+not the chunk size — the stride is `800 - 120 = 680`, so the three threads
+longer than that got a duplicate tail — and rewrote `split_documents` around
+thread boundaries. It also dropped `TOP_K` from 5 to 3 without being asked, so I
+checked ranks 4 and 5 against my own five questions before I kept that.
 
-     "I asked Claude to write the chunking function from my notes. It ignored
-     the overlap, so I added that myself" is the level of detail we're after.
-     "I used AI to help me code" is not.
-
-     Milestone 5. -->
-
-**1.**
-
-**2.**
+**2.** I asked it to draft acceptance criteria 4 and 5. Criterion 4 came back as
+three checks in one sentence, pinned to "all 26 chunks", which stops meaning
+anything as soon as the chunker changes, so I replaced it with one property: 23
+chunks, each 300 to 800 characters. Its written reasons also ran three or four
+paragraphs per section and I cut them all to two sentences.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
