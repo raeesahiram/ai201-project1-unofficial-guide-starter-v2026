@@ -376,11 +376,11 @@ All five are whole threads — 23 chunks from 23 documents, shortest 317 charact
 
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunk contains the answer | MET | All three runs retrieved a chunk from the thread containing the expected answer for all 5 questions, exceeding the target of 4 of 5. |
+| 2 | Every answer names a source | MET | All 15 generated answers named at least one source, meeting the target of 5 of 5 in every run. |
+| 3 | Gate stops out-of-corpus questions | MET | The deterministic gate refused all 5 out-of-scope questions in each reported run, exceeding the target of 4 of 5. |
+| 4 | One chunk per thread, no fragments | MET | The chunker produced 23 whole-thread chunks, all between 300 and 800 characters, meeting the target exactly. |
+| 5 | The answer states the right fact | MET | Every one of the 15 generated answers contained its question's expected string, exceeding the target of 4 of 5 in every run. |
 
 ## Diagnoses
 
