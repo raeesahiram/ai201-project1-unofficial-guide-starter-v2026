@@ -303,15 +303,65 @@ paragraphs per section and I cut them all to two sentences.
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. One chunk per thread, no fragments | 23 of 23 | 23/23 | 23/23 | 23/23 | MET |
+| 5. The answer states the right fact | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 
 <!-- Underneath, paste the REAL output for each criterion from one of your
      runs — the actual text your system produced, not a description of it.
      Name the file and function that produced it. -->
+
+**Evidence for criteria 1, 2, and 5** — from
+`results/run_2026-09-20_2321_before.md`, produced by
+`run_eval.py::main` and `generate.py::answer_from_chunks`:
+
+```text
+You can declare a course pass/fail as late as week eight.
+
+Sources: *thread_pass_fail.txt* and *thread_first_year_regret.txt*
+
+The printing quota of $30 covers about 600 pages of black and white printing.
+
+Source: thread_printing.txt
+
+Students state that laundry is free (least busy) on Tuesday and Wednesday mornings in every building.
+
+Source: thread_laundry_timing.txt
+
+Students recommend 16GB of RAM for a laptop for CS courses.
+
+Source: thread_laptop_specs.txt
+
+The west parking lots sell out in about three days in August.
+
+Source: thread_parking.txt
+```
+
+All five retrieved result sets included the corresponding answer thread, all
+five answers contained the expected fact, and all five named a source.
+
+**Evidence for criterion 3** — from
+`results/run_2026-09-20_2321_before.md`, produced by
+`run_eval.py::check_out_of_scope`:
+
+```text
+Produced by `run_eval.py::check_out_of_scope`, cutoff 0.6. Refused 5 of 5.
+
+| What is the capital of Mongolia? | 0.948 | refused |
+| How do I change the oil in a diesel engine? | 0.930 | refused |
+| Who won the 1994 World Cup? | 0.952 | refused |
+| What is the recommended dosage of ibuprofen for a headache? | 0.828 | refused |
+| How do I write a for loop in Rust? | 0.871 | refused |
+```
+
+**Evidence for criterion 4** — from `chunker.py::split_documents`, checked by
+the `python app.py chunks -n 5` output already pasted above:
+
+```text
+All five are whole threads — 23 chunks from 23 documents, shortest 317 characters and longest 793.
+```
 
 ## Verdicts
 
