@@ -276,6 +276,13 @@ anything as soon as the chunker changes, so I replaced it with one property: 23
 chunks, each 300 to 800 characters. Its written reasons also ran three or four
 paragraphs per section and I cut them all to two sentences.
 
+**3.** In week 2, I used an AI coding assistant to compare the before-run
+results and identify exact terms and numbers as a likely retrieval weakness. It
+suggested hybrid search, which I implemented with BM25 plus semantic ranking.
+The after-run evidence showed that it changed lower-ranked sources but did not
+change the five criterion totals, so I kept that result instead of claiming an
+improvement that the test did not show.
+
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
      claims earns nothing.
@@ -479,15 +486,19 @@ still ranked first at distance `0.535` and passed the `0.6` gate.
 
      Milestone 5. -->
 
-The same parking-ticket false positive is still broken. I would add plausible
-student questions like that one to the out-of-scope set and tune or redesign
-the gate around them; I stopped here because hybrid search changed rankings
-without changing the measured outcomes, so lowering the cutoff without new
-evidence would risk refusing genuine questions.
+No criterion was missed after the hybrid run, so there is no missed criterion
+to repair. The system still has one meaningful failure outside those five
+criteria: the plausible question "How much is a parking ticket?" passes the
+gate at distance `0.535`, even though the parking thread only discusses
+permits. I would add several questions like that to `OUT_OF_SCOPE`, then tune
+or redesign the gate around them. I stopped here because hybrid search changed
+lower-ranked results without changing the measured outcomes, so lowering the
+cutoff without new evidence could refuse genuine questions.
 
 ## What I'd Do Differently
 
-<!-- Knowing what you know now — which of your five criteria would you write
-     differently, and why?
-
-     Milestone 5. -->
+I would rewrite criterion 3 to require 5 of 5 refusals on a harder set of
+plausible student questions, not just obviously unrelated questions. The
+original target of 4 of 5 was reasonable for the clean starter examples, but
+it did not measure the parking-ticket failure that actually matters for this
+corpus.
