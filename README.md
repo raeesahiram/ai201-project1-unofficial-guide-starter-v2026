@@ -402,6 +402,12 @@ All five are whole threads — 23 chunks from 23 documents, shortest 317 charact
 
      Milestone 3. -->
 
+I missed nothing: all five criteria met their original targets in all three
+runs. The targets were somewhat safe, especially criterion 3: the five
+out-of-scope questions were clearly unrelated to the corpus, and the gate
+refused all five. I would tighten criterion 3 from 4 of 5 to 5 of 5, then use
+plausible student questions that sound closer to the corpus as the test set.
+
 ## The Improvement
 
 **What I changed:**
