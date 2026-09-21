@@ -410,9 +410,17 @@ plausible student questions that sound closer to the corpus as the test set.
 
 ## The Improvement
 
-**What I changed:**
+**What I changed:** I added an opt-in hybrid retrieval mode in
+`store.py::search`. It combines the semantic ranking with BM25 keyword
+ranking using reciprocal-rank fusion. The existing semantic index remains the
+`default` variant; I built the same 23 chunks as the `hybrid` variant and ran
+the evaluation with `--variant hybrid`. The run is recorded in
+`results/run_2026-09-20_2332_after.md`.
 
-**Why I picked it:**
+**Why I picked it:** The diagnosis identified exact terms and numbers as the
+most likely retrieval weakness, and this corpus contains terms such as `16GB`,
+`600`, and `week eight` that keyword search can preserve when semantic search
+smooths them into a broader meaning.
 
 <!-- Connect it to a specific diagnosis above in one sentence. If you can't,
      you picked a fix because it sounded impressive. -->
@@ -424,20 +432,42 @@ plausible student questions that sound closer to the corpus as the test set.
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. One chunk per thread, no fragments | 23 of 23 | 23/23 | 23/23 | 23/23 | MET |
+| 5. The answer states the right fact | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+
+**Real output from `results/run_2026-09-20_2332_after.md`:**
+
+```text
+How late in the term can you declare a course pass/fail?
+     run 1: —  (best distance 0.314)
+     run 2: —  (best distance 0.314)
+     run 3: —  (best distance 0.314)
+
+How much RAM do students recommend for a laptop for CS courses?
+     run 1: —  (best distance 0.190)
+     run 2: —  (best distance 0.190)
+     run 3: —  (best distance 0.190)
+
+Out-of-scope questions (the gate should refuse these):
+     refused  (best distance 0.948)  What is the capital of Mongolia?
+     refused  (best distance 0.918)  How do I write a for loop in Rust?
+     -> gate refused 5 of 5
+```
+
+The dashes are because `scorer.py` does not exist yet; I judged the answers
+against the `expects` strings in `questions.py`.
 
 **Did it help?**
 
-<!-- Say plainly whether it did, and how you know. If it made things worse,
-     say that — a change that backfired, honestly reported, earns full credit
-     and is more interesting than one that worked. What matters is that you can
-     tell.
-
-     Milestone 4. -->
+It did not change the criterion totals: both variants retrieved the answer
+thread for all five test questions, all generated answers stated the expected
+fact and named a source, and both refused all five obvious out-of-scope
+questions. Hybrid did change some lower-ranked sources, but it did not fix the
+known plausible question "How much is a parking ticket?": the parking thread
+still ranked first at distance `0.535` and passed the `0.6` gate.
 
 ## What's Still Broken
 
@@ -448,6 +478,12 @@ plausible student questions that sound closer to the corpus as the test set.
      not.
 
      Milestone 5. -->
+
+The same parking-ticket false positive is still broken. I would add plausible
+student questions like that one to the out-of-scope set and tune or redesign
+the gate around them; I stopped here because hybrid search changed rankings
+without changing the measured outcomes, so lowering the cutoff without new
+evidence would risk refusing genuine questions.
 
 ## What I'd Do Differently
 

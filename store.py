@@ -18,6 +18,7 @@ rest of the project if they were wrong:
 """
 
 import os
+import re
 import shutil
 from dataclasses import dataclass
 
@@ -188,6 +189,11 @@ def search(
     Retrieve the chunks closest in meaning to a question.
 
     Returns them nearest-first, each with its distance.
+
+    The ``hybrid`` variant combines semantic rank with BM25 keyword rank using
+    reciprocal-rank fusion. It uses the same stored chunks as the default
+    index, but keeps the default semantic-only behavior available for the
+    before/after comparison.
     """
     top_k = top_k or config.TOP_K
     name = config.collection_name(corpus, variant)
@@ -199,15 +205,40 @@ def search(
             f"No index called '{name}'. Run `python app.py index` first."
         ) from exc
 
+    count = collection.count()
     raw = collection.query(
         query_embeddings=embed([question]),
-        n_results=min(top_k, collection.count()),
+        n_results=count if variant == "hybrid" else min(top_k, count),
     )
 
-    results: list[Result] = []
-    for text, meta, distance in zip(
+    rows = list(zip(
         raw["documents"][0], raw["metadatas"][0], raw["distances"][0]
-    ):
+    ))
+
+    if variant == "hybrid":
+        from rank_bm25 import BM25Okapi
+
+        def tokens(text: str) -> list[str]:
+            return re.findall(r"[a-z0-9]+", text.lower())
+
+        corpus_tokens = [tokens(text) for text, _, _ in rows]
+        bm25 = BM25Okapi(corpus_tokens)
+        keyword_scores = bm25.get_scores(tokens(question))
+        keyword_rank = sorted(
+            range(len(rows)), key=lambda index: keyword_scores[index], reverse=True
+        )
+        keyword_position = {index: rank for rank, index in enumerate(keyword_rank)}
+        fused_rank = sorted(
+            range(len(rows)),
+            key=lambda index: (
+                1 / (60 + index) + 1 / (60 + keyword_position[index])
+            ),
+            reverse=True,
+        )
+        rows = [rows[index] for index in fused_rank]
+
+    results: list[Result] = []
+    for text, meta, distance in rows[:top_k]:
         results.append(
             Result(
                 text=text,
